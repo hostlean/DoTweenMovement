@@ -424,15 +424,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   closeDistance: 0.1
-  speed: 1
-  speedType: 0
-  pathType: 0
+  speed: 11.86
   points:
-  - posiiton: {x: 0, y: 7.66, z: 0}
+  - posiiton: {x: 0, y: 7.07, z: -17.08}
   - posiiton: {x: 0, y: -5, z: 0}
-  gizmoColor: {r: 0, g: 1, b: 0.016062737, a: 1}
-  gizmoSize: 0.72
-  gizmoType: 1
+  - posiiton: {x: 0, y: 12.57, z: 0}
+  - posiiton: {x: 0, y: 18.86, z: 8}
+  gizmoColor: {r: 0, g: 1, b: 0.35000014, a: 1}
+  gizmoSize: 1.41
+  gizmoType: 0
 --- !u!4 &1435193246
 Transform:
   m_ObjectHideFlags: 0
