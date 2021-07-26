@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace DoTweenMovement.Scripts
 {
-    public class DoTweenMovement : MonoBehaviour
+    public class DTMovement : MonoBehaviour
     {
         [SerializeField] private float closeDistance = 0.1f;
         [SerializeField] private float speed = 1.0f;
@@ -13,9 +13,8 @@ namespace DoTweenMovement.Scripts
         // [SerializeField] private PathType pathType;
 
 
-        [SerializeField] private List<PathPoint> points;
+        [SerializeField] private List<PathPoint> pathPoints;
         
-        [Header("Gizmos")]
         [SerializeField] private Color gizmoColor;
         [SerializeField, Range(.1f, 10.0f)] private float gizmoSize = 1.0f;
         [SerializeField] private GizmoType gizmoType;
@@ -49,9 +48,9 @@ namespace DoTweenMovement.Scripts
 
         private void Awake()
         {
-            for (int i = 0; i < points.Count; i++)
+            for (int i = 0; i < pathPoints.Count; i++)
             {
-                _positions.Add(transform.position + points[i].posiiton);
+                _positions.Add(transform.position + pathPoints[i].posiiton);
             }
             
             positionCount = _positions.Count;
@@ -82,7 +81,10 @@ namespace DoTweenMovement.Scripts
 #if UNITY_EDITOR
         private void OnDrawGizmos()
         {
-            var pointCount = points.Count;
+            var pointCount = pathPoints.Count;
+
+            if (pointCount == 0) return;
+            
             var position = transform.position;
             for (int i = 0; i < pointCount; i++)
             {
@@ -91,35 +93,40 @@ namespace DoTweenMovement.Scripts
                 switch (gizmoType)
                 {
                     case GizmoType.Sphere:
-                        Gizmos.DrawSphere(position + points[i].posiiton, gizmoSize);
+                        Gizmos.DrawSphere(position + pathPoints[i].posiiton, gizmoSize);
                         break;
                     case GizmoType.Cube:
-                        Gizmos.DrawCube(position + points[i].posiiton, Vector3.one * gizmoSize);
+                        Gizmos.DrawCube(position + pathPoints[i].posiiton, Vector3.one * gizmoSize);
                         break;
                     case GizmoType.WiredSphere:
-                        Gizmos.DrawWireSphere(position + points[i].posiiton, gizmoSize);
+                        Gizmos.DrawWireSphere(position + pathPoints[i].posiiton, gizmoSize);
                         break;
                     case GizmoType.WiredCube:
-                        Gizmos.DrawWireCube(position + points[i].posiiton, Vector3.one * gizmoSize);
+                        Gizmos.DrawWireCube(position + pathPoints[i].posiiton, Vector3.one * gizmoSize);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
             }
 
+            Gizmos.color = Color.white;
             if (pointCount > 1)
             {
                 for (int i = 0; i < pointCount; i++)
                 {
                     if(i + 1 != pointCount)
                     {
-                        Gizmos.DrawLine(position + points[i].posiiton, position + points[i+1].posiiton);
+                        Gizmos.DrawLine(position + pathPoints[i].posiiton, position + pathPoints[i+1].posiiton);
                     }
                     else
                     {
-                        Gizmos.DrawLine(position + points[i].posiiton, position + points[0].posiiton);
+                        Gizmos.DrawLine(position + pathPoints[i].posiiton, position + pathPoints[0].posiiton);
                     }
                 } 
+            }
+            else
+            {
+                Gizmos.DrawLine(position, position + pathPoints[0].posiiton);
             }
            
         }
