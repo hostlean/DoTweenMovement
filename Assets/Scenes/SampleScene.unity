@@ -430,10 +430,13 @@ MonoBehaviour:
   speedType: 0
   pathType: 0
   pathPoints:
-  - posiiton: {x: 0, y: 7.7469015, z: 0}
-  - posiiton: {x: 0, y: -9.66282, z: 0}
+  - posiiton: {x: 0, y: 7.3973556, z: 0}
+  - posiiton: {x: 0, y: -9.422612, z: 0}
+  - posiiton: {x: 0, y: 7.4172487, z: 9.382246}
+  - posiiton: {x: 0, y: -11.468633, z: 9.382246}
+  showGizmosInPlayMode: 0
   pointGizmoColor: {r: 0.97020423, g: 1, b: 0, a: 1}
-  gizmoSize: 0.42
+  gizmoSize: 1
   gizmoType: 1
   pointMoveInEditor: 1
 --- !u!4 &1435193246

@@ -16,7 +16,8 @@ namespace DoTweenMovement.Scripts
 
 
         [SerializeField] private List<PathPoint> pathPoints;
-        
+
+        [SerializeField] private bool showGizmosInPlayMode;
         [SerializeField] private Color pointGizmoColor;
         [SerializeField, Range(.1f, 10.0f)] private float gizmoSize = 1.0f;
         [SerializeField] private GizmoType gizmoType;
@@ -33,6 +34,7 @@ namespace DoTweenMovement.Scripts
         public List<PathPoint> PathPoints => pathPoints;
         public float GizmoSize => gizmoSize;
         public Color PointGizmoColor => pointGizmoColor;
+        public bool ShowGizmosInPlayMode => showGizmosInPlayMode;
 
         public enum SpeedType
         {
@@ -105,7 +107,7 @@ namespace DoTweenMovement.Scripts
     [Serializable]
     public class PathPoint
     {
-        public Vector3 posiiton;
+        public Vector3 posiiton = Vector3.zero;
 
     }
 }

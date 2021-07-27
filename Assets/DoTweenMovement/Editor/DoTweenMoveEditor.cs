@@ -19,6 +19,7 @@ namespace DoTweenMovement.Editor
 
         private SerializedProperty pathPoints;
 
+        private SerializedProperty showGizmosInPlayMode;
         private SerializedProperty pointGizmoColor;
         private SerializedProperty gizmoSize;
         private SerializedProperty gizmoType;
@@ -46,6 +47,7 @@ namespace DoTweenMovement.Editor
             minValue = serializedObject.FindProperty(nameof(minValue));
             maxValue = serializedObject.FindProperty(nameof(maxValue));
             pathPoints = serializedObject.FindProperty(nameof(pathPoints));
+            showGizmosInPlayMode = serializedObject.FindProperty(nameof(showGizmosInPlayMode));
             pointGizmoColor = serializedObject.FindProperty(nameof(pointGizmoColor));
             gizmoSize = serializedObject.FindProperty(nameof(gizmoSize));
             gizmoType = serializedObject.FindProperty(nameof(gizmoType));
@@ -54,7 +56,6 @@ namespace DoTweenMovement.Editor
 
             numberStyle.normal.textColor = Color.cyan;
             numberStyle.fontStyle = FontStyle.Bold;
-            //boldStyle = GUIStyle.none;
             boldStyle.normal.textColor = Color.white;
             boldStyle.fontStyle = FontStyle.Bold;
         }
@@ -91,6 +92,7 @@ namespace DoTweenMovement.Editor
             EditorGUILayout.Space(1);
             //Reminder new GUIStyle(GUI.skin.label) {fontStyle = FontStyle.Bold}
             EditorGUILayout.LabelField("Point Editor", boldStyle);
+            EditorGUILayout.PropertyField(showGizmosInPlayMode);
             EditorGUILayout.PropertyField(pointMoveInEditor);
             EditorGUILayout.PropertyField(gizmoSize);
             EditorGUILayout.PropertyField(gizmoType);
@@ -113,14 +115,15 @@ namespace DoTweenMovement.Editor
             var myPathPoints = myScript.PathPoints;
             var pointCount = myScript.PathPoints.Count;
             Handles.color = myScript.PointGizmoColor;
-            
+            var fontSize = (int) myScript.GizmoSize * 10;
+            if(fontSize > 25)
+                numberStyle.fontSize = (int) myScript.GizmoSize * 10;
+            else
+                numberStyle.fontSize = 25;
             
 
-
-            // if (t.GetOriginalTransformPositionStatus() == false)
-            // {
-            //     return;
-            // }
+            if (!myScript.ShowGizmosInPlayMode && Application.isPlaying) return;
+           
 
             for (int i = 0; i < pointCount; i++)
             {
@@ -129,10 +132,13 @@ namespace DoTweenMovement.Editor
                 Vector3 oldPoint = position + myScript.PathPoints[i].posiiton;
 
                 //Draw handles for points
-                Handles.DrawWireDisc(position + myScript.PathPoints[i].posiiton,
-                    Vector3.forward, 
-                    myScript.GizmoSize);
                 
+                Handles.DrawWireDisc(
+                    position + myScript.PathPoints[i].posiiton,
+                    Vector3.forward, 
+                    myScript.GizmoSize, myScript.GizmoSize);
+                
+                //Draw numbers for path points
                 Handles.Label(
                     position + myScript.PathPoints[i].posiiton + (Vector3.down * 0.4f) +
                     (Vector3.right * 0.4f), "" + i, numberStyle);
@@ -170,13 +176,13 @@ namespace DoTweenMovement.Editor
                 for (int i = 0; i < pointCount; i++)
                 {
                     if(i + 1 != pointCount)
-                        Handles.DrawLine(position + myPathPoints[i].posiiton, position + myPathPoints[i+1].posiiton);
+                        Handles.DrawLine(position + myPathPoints[i].posiiton, position + myPathPoints[i+1].posiiton, myScript.GizmoSize);
                     else
-                        Handles.DrawLine(position + myPathPoints[i].posiiton, position + myPathPoints[0].posiiton);
+                        Handles.DrawLine(position + myPathPoints[i].posiiton, position + myPathPoints[0].posiiton, myScript.GizmoSize);
                 } 
             }
             else
-                Gizmos.DrawLine(position, position + myPathPoints[0].posiiton);
+                Handles.DrawLine(position, position + myPathPoints[0].posiiton, myScript.GizmoSize);
         }
     }
 }
