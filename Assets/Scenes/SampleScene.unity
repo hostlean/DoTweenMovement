@@ -425,12 +425,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   closeDistance: 0.1
   speed: 12
+  minValue: 0
+  maxValue: 1
+  speedType: 0
+  pathType: 0
   pathPoints:
-  - posiiton: {x: 0, y: 6.52, z: 0}
-  - posiiton: {x: 0, y: -5.91, z: 0}
-  gizmoColor: {r: 0, g: 1, b: 0.35000014, a: 1}
-  gizmoSize: 0.64
+  - posiiton: {x: 0, y: 7.7469015, z: 0}
+  - posiiton: {x: 0, y: -9.66282, z: 0}
+  pointGizmoColor: {r: 0.97020423, g: 1, b: 0, a: 1}
+  gizmoSize: 0.42
   gizmoType: 1
+  pointMoveInEditor: 1
 --- !u!4 &1435193246
 Transform:
   m_ObjectHideFlags: 0
