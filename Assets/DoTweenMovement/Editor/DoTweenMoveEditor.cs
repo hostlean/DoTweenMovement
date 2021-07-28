@@ -22,7 +22,6 @@ namespace DoTweenMovement.Editor
         private SerializedProperty showGizmosInPlayMode;
         private SerializedProperty pointGizmoColor;
         private SerializedProperty gizmoSize;
-        private SerializedProperty gizmoType;
         private SerializedProperty pointMoveInEditor;
 
         private readonly GUILayoutOption minWidth = GUILayout.MinWidth(100);
@@ -50,7 +49,6 @@ namespace DoTweenMovement.Editor
             showGizmosInPlayMode = serializedObject.FindProperty(nameof(showGizmosInPlayMode));
             pointGizmoColor = serializedObject.FindProperty(nameof(pointGizmoColor));
             gizmoSize = serializedObject.FindProperty(nameof(gizmoSize));
-            gizmoType = serializedObject.FindProperty(nameof(gizmoType));
             pointMoveInEditor = serializedObject.FindProperty(nameof(pointMoveInEditor));
 
 
@@ -95,7 +93,6 @@ namespace DoTweenMovement.Editor
             EditorGUILayout.PropertyField(showGizmosInPlayMode);
             EditorGUILayout.PropertyField(pointMoveInEditor);
             EditorGUILayout.PropertyField(gizmoSize);
-            EditorGUILayout.PropertyField(gizmoType);
             EditorGUILayout.PropertyField(pointGizmoColor);
 
             EditorGUILayout.BeginHorizontal();

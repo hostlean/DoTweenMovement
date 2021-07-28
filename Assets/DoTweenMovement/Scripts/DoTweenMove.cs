@@ -20,7 +20,6 @@ namespace DoTweenMovement.Scripts
         [SerializeField] private bool showGizmosInPlayMode;
         [SerializeField] private Color pointGizmoColor;
         [SerializeField, Range(.1f, 10.0f)] private float gizmoSize = 1.0f;
-        [SerializeField] private GizmoType gizmoType;
         [SerializeField] private GizmoMovementType pointMoveInEditor;
 
         public GizmoMovementType PointMoveInEditor => pointMoveInEditor;
@@ -47,14 +46,7 @@ namespace DoTweenMovement.Scripts
             Line,
             Bezier
         }
-
-        public enum GizmoType
-        {
-            Sphere,
-            Cube,
-            WiredSphere,
-            WiredCube
-        }
+        
 
         public enum GizmoMovementType
         {

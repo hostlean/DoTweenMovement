@@ -426,18 +426,17 @@ MonoBehaviour:
   closeDistance: 0.1
   speed: 12
   minValue: 0
-  maxValue: 1
+  maxValue: 12
   speedType: 0
   pathType: 0
   pathPoints:
-  - posiiton: {x: 0, y: 7.3973556, z: 0}
-  - posiiton: {x: 0, y: -9.422612, z: 0}
-  - posiiton: {x: 0, y: 7.4172487, z: 9.382246}
-  - posiiton: {x: 0, y: -11.468633, z: 9.382246}
-  showGizmosInPlayMode: 0
+  - posiiton: {x: 0, y: 7.3973556, z: 16.364805}
+  - posiiton: {x: 0, y: -8.503364, z: 0}
+  - posiiton: {x: 15.569923, y: -8.503364, z: 0}
+  - posiiton: {x: 15.569923, y: 11.944171, z: -3.0510974}
+  showGizmosInPlayMode: 1
   pointGizmoColor: {r: 0.97020423, g: 1, b: 0, a: 1}
   gizmoSize: 1
-  gizmoType: 1
   pointMoveInEditor: 1
 --- !u!4 &1435193246
 Transform:
