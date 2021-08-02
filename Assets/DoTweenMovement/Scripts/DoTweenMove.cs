@@ -13,6 +13,7 @@ namespace DoTweenMovement.Scripts
 
         public SpeedType speedType;
         public PathType pathType;
+        public FollowType followType;
 
 
         [SerializeField] private List<PathPoint> pathPoints;
@@ -22,19 +23,33 @@ namespace DoTweenMovement.Scripts
         [SerializeField, Range(.1f, 10.0f)] private float gizmoSize = 1.0f;
         [SerializeField] private GizmoMovementType pointMoveInEditor;
 
-        public GizmoMovementType PointMoveInEditor => pointMoveInEditor;
 
         private List<Vector3> _positions = new List<Vector3>();
-
-        private int positionCount;
+        private int _positionCount;
         private int _currentIndex;
+        private bool goBack;
 
         //Properties
+        public GizmoMovementType PointMoveInEditor => pointMoveInEditor;
+        public List<Vector3> Positions => _positions;
         public List<PathPoint> PathPoints => pathPoints;
+        public int PositionCount => _positionCount;
+        public int PathCount => pathPoints.Count;
         public float GizmoSize => gizmoSize;
-        public Color PointGizmoColor => pointGizmoColor;
+        public Color PointGizmoColor
+        {
+            get => pointGizmoColor;
+            set => pointGizmoColor = value;
+        }
+
         public bool ShowGizmosInPlayMode => showGizmosInPlayMode;
 
+        public enum FollowType
+        {
+            Loop,
+            BackAndForth
+        }
+        
         public enum SpeedType
         {
             Constant,
@@ -46,7 +61,6 @@ namespace DoTweenMovement.Scripts
             Line,
             Bezier
         }
-        
 
         public enum GizmoMovementType
         {
@@ -61,7 +75,8 @@ namespace DoTweenMovement.Scripts
                 _positions.Add(transform.position + pathPoints[i].posiiton);
             }
             
-            positionCount = _positions.Count;
+            _positionCount = _positions.Count;
+
         }
 
         private void FixedUpdate()
@@ -86,13 +101,42 @@ namespace DoTweenMovement.Scripts
                     transform.position, 
                     _positions[_currentIndex], 
                     Time.fixedDeltaTime * speed);
-
+            
             if (Vector3.Distance(transform.position, _positions[_currentIndex]) < closeDistance)
             {
                 var nextIndex = _currentIndex + 1;
-                _currentIndex = nextIndex == positionCount ? 0 : nextIndex;
+                var previousIndex = _currentIndex - 1;
+                ChangeIndexByFollowType(nextIndex, previousIndex);
+              
             }
             
+        }
+
+        private void ChangeIndexByFollowType(int nextIndex, int previousIndex)
+        {
+            switch (followType)
+            {
+                case FollowType.Loop:
+                    _currentIndex = nextIndex == _positionCount ? 0 : nextIndex;
+                    break;
+                case FollowType.BackAndForth:
+                    if (goBack)
+                    {
+                        _currentIndex = previousIndex == -1 ? nextIndex : previousIndex;
+                        if (_currentIndex == nextIndex)
+                            goBack = false;
+                    }
+                    else
+                    {
+                        _currentIndex = nextIndex == _positionCount ? previousIndex : nextIndex;
+                        if (_currentIndex == previousIndex)
+                            goBack = true;
+                    }
+
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
     }
 

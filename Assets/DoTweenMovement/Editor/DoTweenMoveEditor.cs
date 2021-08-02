@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEditor;
 using DoTweenMovement.Scripts;
@@ -13,6 +14,7 @@ namespace DoTweenMovement.Editor
 
         private SerializedProperty closeDistance;
         private SerializedProperty speedType;
+        private SerializedProperty followType;
         private SerializedProperty speed;
         private SerializedProperty minValue;
         private SerializedProperty maxValue;
@@ -27,21 +29,24 @@ namespace DoTweenMovement.Editor
         private readonly GUILayoutOption minWidth = GUILayout.MinWidth(100);
         private readonly GUILayoutOption maxWidth = GUILayout.MaxWidth(200);
 
-        AnimationCurve speedCurve = AnimationCurve.Linear(0, 0, 1, 1);
+        private AnimationCurve _speedCurve = AnimationCurve.Linear(0, 0, 1, 1);
         
-        private GUIStyle boldStyle = GUIStyle.none;
-        GUIStyle numberStyle = new GUIStyle();
+        private GUIStyle _boldStyle = GUIStyle.none;
+        private GUIStyle _numberStyle = new GUIStyle();
 
-        private Camera _cam;
+        private bool isDirty = false;
+        private Vector3 MyPosition;
+        private int CurrentPositionCount { get; set; }
+        private int OldPositionCount { get; set; }
+        
 
 
         private void OnEnable()
         {
-            var cam = SceneView.GetAllSceneCameras();
-            _cam = cam[0];
             myScript = (DoTweenMove) target;
             closeDistance = serializedObject.FindProperty(nameof(closeDistance));
             speedType = serializedObject.FindProperty(nameof(speedType));
+            followType = serializedObject.FindProperty(nameof(followType));
             speed = serializedObject.FindProperty(nameof(speed));
             minValue = serializedObject.FindProperty(nameof(minValue));
             maxValue = serializedObject.FindProperty(nameof(maxValue));
@@ -52,10 +57,14 @@ namespace DoTweenMovement.Editor
             pointMoveInEditor = serializedObject.FindProperty(nameof(pointMoveInEditor));
 
 
-            numberStyle.normal.textColor = Color.cyan;
-            numberStyle.fontStyle = FontStyle.Bold;
-            boldStyle.normal.textColor = Color.white;
-            boldStyle.fontStyle = FontStyle.Bold;
+            _numberStyle.normal.textColor = Color.cyan;
+            _numberStyle.fontStyle = FontStyle.Bold;
+            _boldStyle.normal.textColor = Color.white;
+            _boldStyle.fontStyle = FontStyle.Bold;
+
+            OldPositionCount = myScript.PathCount;
+            if(myScript.PointGizmoColor.a == 0)
+                myScript.PointGizmoColor = Color.yellow;
         }
 
 
@@ -63,13 +72,17 @@ namespace DoTweenMovement.Editor
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
+
+            CurrentPositionCount = myScript.PathCount;
+            
             EditorGUILayout.PropertyField(closeDistance);
+            EditorGUILayout.PropertyField(followType);
             EditorGUILayout.PropertyField(pathPoints);
             
             EditorGUILayout.Space(1);
             EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
             EditorGUILayout.Space(1);
-            EditorGUILayout.LabelField("Speed", boldStyle);
+            EditorGUILayout.LabelField("Speed", _boldStyle);
             EditorGUILayout.PropertyField(speedType);
             switch (myScript.speedType)
             {
@@ -79,7 +92,7 @@ namespace DoTweenMovement.Editor
                 case DoTweenMove.SpeedType.Curve:
                     EditorGUILayout.PropertyField(minValue);
                     EditorGUILayout.PropertyField(maxValue);
-                    EditorGUILayout.CurveField("Speed Curve", speedCurve);
+                    EditorGUILayout.CurveField("Speed Curve", _speedCurve);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -89,7 +102,7 @@ namespace DoTweenMovement.Editor
             EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
             EditorGUILayout.Space(1);
             //Reminder new GUIStyle(GUI.skin.label) {fontStyle = FontStyle.Bold}
-            EditorGUILayout.LabelField("Point Editor", boldStyle);
+            EditorGUILayout.LabelField("Point Editor", _boldStyle);
             EditorGUILayout.PropertyField(showGizmosInPlayMode);
             EditorGUILayout.PropertyField(pointMoveInEditor);
             EditorGUILayout.PropertyField(gizmoSize);
@@ -103,42 +116,53 @@ namespace DoTweenMovement.Editor
             EditorGUILayout.EndHorizontal();
 
             serializedObject.ApplyModifiedProperties();
+
+            
+            var positionList = myScript.Positions;
+            
+            if(myScript.Positions != null)
+                isDirty = myScript.Positions.Any(p => positionList.Any(a => a == p));
+            
+            if(OldPositionCount != CurrentPositionCount || isDirty)
+                EditorUtility.SetDirty(myScript.gameObject);
+            
         }
 
         protected virtual void OnSceneGUI()
         {
-            myScript = (DoTweenMove) target;
-            var position = myScript.transform.position;
+            //myScript = (DoTweenMove) target;
+            if (myScript.PathPoints == null) return;
+            if(!Application.isPlaying)
+                MyPosition = myScript.transform.position;
             var myPathPoints = myScript.PathPoints;
             var pointCount = myScript.PathPoints.Count;
             Handles.color = myScript.PointGizmoColor;
             var fontSize = (int) myScript.GizmoSize * 10;
             if(fontSize > 25)
-                numberStyle.fontSize = (int) myScript.GizmoSize * 10;
+                _numberStyle.fontSize = (int) myScript.GizmoSize * 10;
             else
-                numberStyle.fontSize = 25;
+                _numberStyle.fontSize = 25;
             
 
             if (!myScript.ShowGizmosInPlayMode && Application.isPlaying) return;
-           
-
+            
             for (int i = 0; i < pointCount; i++)
             {
                 EditorGUI.BeginChangeCheck();
                 
-                Vector3 oldPoint = position + myScript.PathPoints[i].posiiton;
+                Vector3 oldPoint = MyPosition + myScript.PathPoints[i].posiiton;
 
                 //Draw handles for points
                 
                 Handles.DrawWireDisc(
-                    position + myScript.PathPoints[i].posiiton,
+                    MyPosition + myScript.PathPoints[i].posiiton,
                     Vector3.forward, 
                     myScript.GizmoSize, myScript.GizmoSize);
                 
                 //Draw numbers for path points
                 Handles.Label(
-                    position + myScript.PathPoints[i].posiiton + (Vector3.down * 0.4f) +
-                    (Vector3.right * 0.4f), "" + i, numberStyle);
+                    MyPosition + myScript.PathPoints[i].posiiton + (Vector3.down * 0.4f) +
+                    (Vector3.right * 0.4f), "" + i, _numberStyle);
                 
                 Vector3 newPoint = Vector3.zero;
 
@@ -173,13 +197,13 @@ namespace DoTweenMovement.Editor
                 for (int i = 0; i < pointCount; i++)
                 {
                     if(i + 1 != pointCount)
-                        Handles.DrawLine(position + myPathPoints[i].posiiton, position + myPathPoints[i+1].posiiton, myScript.GizmoSize);
-                    else
-                        Handles.DrawLine(position + myPathPoints[i].posiiton, position + myPathPoints[0].posiiton, myScript.GizmoSize);
+                        Handles.DrawLine(MyPosition + myPathPoints[i].posiiton, MyPosition + myPathPoints[i+1].posiiton, myScript.GizmoSize);
+                    else if(myScript.followType == DoTweenMove.FollowType.Loop)
+                        Handles.DrawLine(MyPosition + myPathPoints[i].posiiton, MyPosition + myPathPoints[0].posiiton, myScript.GizmoSize);
                 } 
             }
             else
-                Handles.DrawLine(position, position + myPathPoints[0].posiiton, myScript.GizmoSize);
+                Handles.DrawLine(MyPosition, MyPosition + myPathPoints[0].posiiton, myScript.GizmoSize);
         }
     }
 }
