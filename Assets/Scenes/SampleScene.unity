@@ -424,21 +424,34 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   closeDistance: 0.1
-  speed: 12
+  speed: 20
   minValue: 0
   maxValue: 1
   speedType: 0
   pathType: 0
-  followType: 0
+  followType: 1
   pathPoints:
-  - posiiton: {x: -10.745756, y: 9.173686, z: 0}
-  - posiiton: {x: 0, y: -15.763695, z: 3.482088}
-  - posiiton: {x: 30.635994, y: -15.763695, z: 0}
-  - posiiton: {x: 20.628935, y: 10.592057, z: 0}
+  - index: 1
+    doTweenMove: {fileID: 0}
+    position: {x: -8.365824, y: 12.256087, z: 0}
+    closeDistance: 0
+  - index: 2
+    doTweenMove: {fileID: 0}
+    position: {x: 18.676935, y: 8.72, z: 0}
+    closeDistance: 0
+  - index: 3
+    doTweenMove: {fileID: 0}
+    position: {x: -7.636627, y: -3.189819, z: 0}
+    closeDistance: 0
+  - index: 4
+    doTweenMove: {fileID: 0}
+    position: {x: 18.676935, y: -7.217092, z: 0}
+    closeDistance: 0
   showGizmosInPlayMode: 1
   pointGizmoColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   gizmoSize: 1
   pointMoveInEditor: 1
+  startPoint: 1
 --- !u!4 &2016047393
 Transform:
   m_ObjectHideFlags: 0
@@ -447,7 +460,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2016047391}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0.49, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 127638759}

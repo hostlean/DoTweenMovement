@@ -22,12 +22,13 @@ namespace DoTweenMovement.Scripts
         [SerializeField] private Color pointGizmoColor;
         [SerializeField, Range(.1f, 10.0f)] private float gizmoSize = 1.0f;
         [SerializeField] private GizmoMovementType pointMoveInEditor;
-
+        [SerializeField] private int startPoint;
 
         private List<Vector3> _positions = new List<Vector3>();
         private int _positionCount;
         private int _currentIndex;
         private bool goBack;
+        
 
         //Properties
         public GizmoMovementType PointMoveInEditor => pointMoveInEditor;
@@ -72,10 +73,14 @@ namespace DoTweenMovement.Scripts
         {
             for (int i = 0; i < pathPoints.Count; i++)
             {
-                _positions.Add(transform.position + pathPoints[i].posiiton);
+                _positions.Add(transform.position + pathPoints[i].position);
             }
             
             _positionCount = _positions.Count;
+
+            //if(startPoint != 0)
+            _currentIndex = startPoint;
+            transform.position = _positions[startPoint];
 
         }
 
@@ -143,7 +148,10 @@ namespace DoTweenMovement.Scripts
     [Serializable]
     public class PathPoint
     {
-        public Vector3 posiiton = Vector3.zero;
+        public int index;
+        public DoTweenMove doTweenMove;
+        public Vector3 position = Vector3.zero;
+        public float closeDistance = .1f;
 
     }
 }
