@@ -18,6 +18,7 @@ namespace DoTweenMovement.Editor
         private SerializedProperty speed;
         private SerializedProperty minValue;
         private SerializedProperty maxValue;
+        private SerializedProperty sampleRate;
 
         private SerializedProperty pathPoints;
         private SerializedProperty startPoint;
@@ -26,18 +27,24 @@ namespace DoTweenMovement.Editor
         private SerializedProperty pointGizmoColor;
         private SerializedProperty gizmoSize;
         private SerializedProperty pointMoveInEditor;
+        private SerializedProperty setStartPoint;
+        private SerializedProperty speedCurve;
+        private SerializedProperty testSpeed;
+        private SerializedProperty calculatingCurve;
 
         private readonly GUILayoutOption minWidth = GUILayout.MinWidth(100);
         private readonly GUILayoutOption maxWidth = GUILayout.MaxWidth(200);
 
-        private readonly AnimationCurve speedCurve = AnimationCurve.Linear(0, 0, 1, 1);
+        //private readonly AnimationCurve speedCurve = AnimationCurve.Linear(0, 0, 1, 1);
         
         private readonly GUIStyle boldStyle = GUIStyle.none;
         private readonly GUIStyle numberStyle = new GUIStyle();
 
         private bool isDirty = false;
         private Vector3 myPosition;
+        private Vector3 playPosition;
         private int selectedPathIndex;
+        private int oldPathIndex;
         private int CurrentPositionCount { get; set; }
         private int OldPositionCount { get; set; }
         
@@ -52,12 +59,17 @@ namespace DoTweenMovement.Editor
             speed = serializedObject.FindProperty(nameof(speed));
             minValue = serializedObject.FindProperty(nameof(minValue));
             maxValue = serializedObject.FindProperty(nameof(maxValue));
+            sampleRate = serializedObject.FindProperty(nameof(sampleRate));
             pathPoints = serializedObject.FindProperty(nameof(pathPoints));
             showGizmosInPlayMode = serializedObject.FindProperty(nameof(showGizmosInPlayMode));
             pointGizmoColor = serializedObject.FindProperty(nameof(pointGizmoColor));
             gizmoSize = serializedObject.FindProperty(nameof(gizmoSize));
             pointMoveInEditor = serializedObject.FindProperty(nameof(pointMoveInEditor));
             startPoint = serializedObject.FindProperty(nameof(startPoint));
+            setStartPoint = serializedObject.FindProperty(nameof(setStartPoint));
+            speedCurve = serializedObject.FindProperty(nameof(speedCurve));
+            testSpeed = serializedObject.FindProperty(nameof(testSpeed));
+            calculatingCurve = serializedObject.FindProperty(nameof(calculatingCurve));
 
 
             numberStyle.normal.textColor = Color.cyan;
@@ -65,7 +77,8 @@ namespace DoTweenMovement.Editor
             boldStyle.normal.textColor = Color.white;
             boldStyle.fontStyle = FontStyle.Bold;
 
-            OldPositionCount = myScript.PathCount;
+            if(myScript.PathPoints != null)
+                OldPositionCount = myScript.PathCount;
             if(myScript.PointGizmoColor.a == 0)
                 myScript.PointGizmoColor = Color.yellow;
         }
@@ -103,16 +116,25 @@ namespace DoTweenMovement.Editor
             
             EditorGUILayout.PropertyField(closeDistance);
             EditorGUILayout.PropertyField(followType);
-            
-            
-            var length = myScript.PathCount;
-            string[] dataNames = GetPathNames(length);
-            int[] dataIndex = GetPathIndex(length);
-            
-            selectedPathIndex = EditorGUILayout.IntPopup("Start Point", startPoint.intValue, dataNames, dataIndex);
-            startPoint.intValue = selectedPathIndex;
-            
-            
+            EditorGUILayout.PropertyField(setStartPoint);
+
+            if (myScript.SetStartPoint)
+            {
+                var length = myScript.PathCount;
+                string[] dataNames = GetPathNames(length);
+                int[] dataIndex = GetPathIndex(length);
+
+
+                selectedPathIndex = EditorGUILayout.IntPopup("Start Point", startPoint.intValue, dataNames, dataIndex);
+                startPoint.intValue = selectedPathIndex;
+
+            }
+          
+
+
+
+
+
             EditorGUILayout.PropertyField(pathPoints);
             
             
@@ -135,7 +157,10 @@ namespace DoTweenMovement.Editor
                 case DoTweenMove.SpeedType.Curve:
                     EditorGUILayout.PropertyField(minValue);
                     EditorGUILayout.PropertyField(maxValue);
-                    EditorGUILayout.CurveField("Speed Curve", speedCurve);
+                    EditorGUILayout.PropertyField(sampleRate);
+                    EditorGUILayout.PropertyField(speedCurve);
+                    EditorGUILayout.PropertyField(calculatingCurve);
+                    //EditorGUILayout.CurveField("Speed Curve", speedCurve);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -175,8 +200,17 @@ namespace DoTweenMovement.Editor
         {
             //myScript = (DoTweenMove) target;
             if (myScript.PathPoints == null || myScript.PathPoints.Count == 0) return;
-            if(!Application.isPlaying)
-                myPosition = myScript.transform.position;
+            if (!Application.isPlaying)
+            {
+                playPosition = myScript.transform.position;
+                myPosition = playPosition;
+            }
+            else
+            {
+                myPosition = myScript.AwakePos;
+            }
+
+            
             var myPathPoints = myScript.PathPoints;
             var pointCount = myScript.PathPoints.Count;
             Handles.color = myScript.PointGizmoColor;
@@ -202,6 +236,12 @@ namespace DoTweenMovement.Editor
                     myPosition + myScript.PathPoints[i].position,
                     Vector3.forward, 
                     myScript.GizmoSize, myScript.GizmoSize);
+
+                if (Application.isPlaying)
+                {
+                    Handles.Label(myScript.transform.position + Vector3.down, $"{testSpeed.floatValue}", numberStyle);
+                }
+                
                 
                 //Draw numbers for path points
                 Handles.Label(

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor;
+using UnityEditor.UIElements;
 using UnityEngine;
 
 namespace DoTweenMovement.Scripts
@@ -10,6 +12,7 @@ namespace DoTweenMovement.Scripts
         [SerializeField] private float speed = 1.0f;
         [SerializeField] private float minValue = 0.0f;
         [SerializeField] private float maxValue = 1.0f;
+        [SerializeField] private int sampleRate = 10;
 
         public SpeedType speedType;
         public PathType pathType;
@@ -17,30 +20,45 @@ namespace DoTweenMovement.Scripts
 
 
         [SerializeField] private List<PathPoint> pathPoints;
-
         [SerializeField] private bool showGizmosInPlayMode;
         [SerializeField] private Color pointGizmoColor;
         [SerializeField, Range(.1f, 10.0f)] private float gizmoSize = 1.0f;
         [SerializeField] private GizmoMovementType pointMoveInEditor;
         [SerializeField] private int startPoint;
+        [SerializeField] private bool setStartPoint;
+        [SerializeField] private AnimationCurve speedCurve = 
+            AnimationCurve.Linear(0, 0, 1, 1);
 
-        private List<Vector3> _positions = new List<Vector3>();
-        private int _positionCount;
-        private int _currentIndex;
+        [SerializeField] private AnimationCurve calculatingCurve;
+
+        private readonly List<Vector3> positions = new List<Vector3>();
+        private int positionCount;
+        private int currentIndex;
         private bool goBack;
+        private float alteredSpeed;
+        private float increasingTime;
+        private Vector3 awakePos;
+        [HideInInspector] public float testSpeed;
         
 
         //Properties
         public GizmoMovementType PointMoveInEditor => pointMoveInEditor;
-        public List<Vector3> Positions => _positions;
+        public List<Vector3> Positions => positions;
         public List<PathPoint> PathPoints => pathPoints;
-        public int PositionCount => _positionCount;
+        public int PositionCount => positionCount;
         public int PathCount => pathPoints.Count;
         public float GizmoSize => gizmoSize;
+        public bool SetStartPoint => setStartPoint;
+        public Vector3 AwakePos => awakePos;
         public Color PointGizmoColor
         {
             get => pointGizmoColor;
             set => pointGizmoColor = value;
+        }
+        public int StartPoint
+        {
+            get => startPoint;
+            set => startPoint = value;
         }
 
         public bool ShowGizmosInPlayMode => showGizmosInPlayMode;
@@ -71,17 +89,26 @@ namespace DoTweenMovement.Scripts
 
         private void Awake()
         {
+            awakePos = transform.position;
             for (int i = 0; i < pathPoints.Count; i++)
             {
-                _positions.Add(transform.position + pathPoints[i].position);
+                positions.Add(transform.position + pathPoints[i].position);
             }
+
+            positionCount = positions.Count;
+           
+
+            if (setStartPoint)
+            {
+                currentIndex = startPoint;
+                transform.position = positions[startPoint];
+            }
+               
             
-            _positionCount = _positions.Count;
-
-            //if(startPoint != 0)
-            _currentIndex = startPoint;
-            transform.position = _positions[startPoint];
-
+            
+            
+            calculatingCurve = speedCurve;
+            alteredSpeed = speed;
         }
 
         private void FixedUpdate()
@@ -101,20 +128,31 @@ namespace DoTweenMovement.Scripts
 
         private void MoveWithLine()
         {
+            if (speedType == SpeedType.Curve)
+            {
+                alteredSpeed = calculatingCurve.Evaluate(increasingTime);
+                    //speedCurve.Evaluate(increasingTime) * (maxValue - minValue) + minValue;
+                increasingTime += Time.fixedDeltaTime;
+            }
+            else
+            {
+                alteredSpeed = speed;
+            }
+
+            testSpeed = alteredSpeed;
             transform.position =
                 Vector3.MoveTowards(
                     transform.position, 
-                    _positions[_currentIndex], 
-                    Time.fixedDeltaTime * speed);
+                    positions[currentIndex], 
+                    Time.fixedDeltaTime * alteredSpeed);
             
-            if (Vector3.Distance(transform.position, _positions[_currentIndex]) < closeDistance)
+            if (Vector3.Distance(transform.position, positions[currentIndex]) < closeDistance)
             {
-                var nextIndex = _currentIndex + 1;
-                var previousIndex = _currentIndex - 1;
+                var nextIndex = currentIndex + 1;
+                var previousIndex = currentIndex - 1;
                 ChangeIndexByFollowType(nextIndex, previousIndex);
               
             }
-            
         }
 
         private void ChangeIndexByFollowType(int nextIndex, int previousIndex)
@@ -122,27 +160,98 @@ namespace DoTweenMovement.Scripts
             switch (followType)
             {
                 case FollowType.Loop:
-                    _currentIndex = nextIndex == _positionCount ? 0 : nextIndex;
+                    CalculateLoopIndex(nextIndex);
                     break;
                 case FollowType.BackAndForth:
-                    if (goBack)
-                    {
-                        _currentIndex = previousIndex == -1 ? nextIndex : previousIndex;
-                        if (_currentIndex == nextIndex)
-                            goBack = false;
-                    }
-                    else
-                    {
-                        _currentIndex = nextIndex == _positionCount ? previousIndex : nextIndex;
-                        if (_currentIndex == previousIndex)
-                            goBack = true;
-                    }
-
+                    CalculateBackAndForthIndex(nextIndex, previousIndex);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
+
+        private void CalculateLoopIndex(int nextIndex)
+        {
+            var oldIndex = currentIndex;
+            currentIndex = nextIndex == positionCount ? 0 : nextIndex;
+            if (speedType == SpeedType.Curve)
+            {
+                CalculateTimeForPathPoints(
+                    positions[oldIndex],
+                    positions[currentIndex],
+                    sampleRate);
+            }
+        }
+
+        private void CalculateBackAndForthIndex(int nextIndex, int previousIndex)
+        {
+            var oldIndex = currentIndex;
+            if (goBack)
+            {
+                currentIndex = previousIndex == -1 ? nextIndex : previousIndex;
+                if (currentIndex == nextIndex)
+                    goBack = false;
+            }
+            else
+            {
+                currentIndex = nextIndex == positionCount ? previousIndex : nextIndex;
+                if (currentIndex == previousIndex)
+                    goBack = true;
+            }
+            
+            if (speedType == SpeedType.Curve)
+            {
+                CalculateTimeForPathPoints(
+                    positions[oldIndex],
+                    positions[currentIndex],
+                    sampleRate);
+            }
+        }
+
+        private void CalculateTimeForPathPoints(Vector3 firstPoint, Vector3 secondPoint, int sampleRateParam)
+        {
+            increasingTime = 0;
+            var distance = Vector3.Distance(firstPoint, secondPoint);
+            float totalSpeedValue = 0;
+            for (int i = 0; i < sampleRateParam+1; i++)
+            {
+                var sampleValue = speedCurve.Evaluate((float)i/(sampleRateParam)) * (maxValue - minValue) + minValue;
+                totalSpeedValue += sampleValue;
+            }
+
+            var time = distance / (totalSpeedValue / (sampleRateParam));
+
+            calculatingCurve = CreateNewSpeedCurve(time);
+
+            // for (int i = 0; i < speedCurve.keys.Length; i++)
+            // {
+            //     speedCurve.keys[i].time *= time;
+            // }
+
+
+        }
+
+        private AnimationCurve CreateNewSpeedCurve(float timeValue)
+        {
+            AnimationCurve animationCurve = new AnimationCurve();
+            Keyframe[] newKeys = new Keyframe[speedCurve.length];
+            for (int i = 0; i < speedCurve.length; i++)
+            {
+                var diff = maxValue - minValue;
+                float value = minValue + speedCurve.keys[i].value * diff;
+                float time = speedCurve.keys[i].time * timeValue;
+                newKeys[i] = new Keyframe(time, value, 
+                    speedCurve.keys[i].inTangent, 
+                    speedCurve.keys[i].outTangent,
+                    speedCurve.keys[i].inWeight,
+                    speedCurve.keys[i].outWeight);
+                animationCurve.AddKey(newKeys[i]);
+            }
+
+            return animationCurve;
+        }
+        
+        
     }
 
     [Serializable]

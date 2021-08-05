@@ -26,21 +26,21 @@ namespace DoTweenMovement.Editor
             var rect2 = new Rect(rect.x, rect.y - 27, rect.width, rect.height);
             EditorGUI.LabelField(rect2, $"Position {index.intValue}");
             position.vector3Value = EditorGUI.Vector3Field(rect, "", position.vector3Value);
-
-            EditorGUILayout.BeginVertical();
-            GUILayout.FlexibleSpace();
-            
-            GUILayout.FlexibleSpace();
-            EditorGUILayout.EndVertical();
-            
-            EditorGUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-
-            
-           
-
-            GUILayout.FlexibleSpace();
-            EditorGUILayout.EndHorizontal();
+            //
+            // EditorGUILayout.BeginVertical();
+            // GUILayout.FlexibleSpace();
+            //
+            // GUILayout.FlexibleSpace();
+            // EditorGUILayout.EndVertical();
+            //
+            // EditorGUILayout.BeginHorizontal();
+            // GUILayout.FlexibleSpace();
+            //
+            //
+            //
+            //
+            // GUILayout.FlexibleSpace();
+            // EditorGUILayout.EndHorizontal();
             
             
             
