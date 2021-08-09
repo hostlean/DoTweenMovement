@@ -397,7 +397,7 @@ MonoBehaviour:
   speed: 20
   minValue: 0
   maxValue: 30
-  sampleRate: 100
+  sampleRate: 10
   speedType: 1
   pathType: 0
   followType: 0
@@ -418,7 +418,7 @@ MonoBehaviour:
   pointGizmoColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   gizmoSize: 1
   pointMoveInEditor: 0
-  startPoint: 1
+  startPoint: 0
   setStartPoint: 1
   speedCurve:
     serializedVersion: 2

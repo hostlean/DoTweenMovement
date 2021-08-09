@@ -87,6 +87,9 @@ namespace DoTweenMovement.Scripts
             Transform
         }
 
+
+        private float totalTime;
+        
         private void Awake()
         {
             awakePos = transform.position;
@@ -130,9 +133,10 @@ namespace DoTweenMovement.Scripts
         {
             if (speedType == SpeedType.Curve)
             {
-                alteredSpeed = calculatingCurve.Evaluate(increasingTime);
+                alteredSpeed = speedCurve.Evaluate(increasingTime) * (maxValue - minValue) + minValue;
+                    //calculatingCurve.Evaluate(increasingTime);
                     //speedCurve.Evaluate(increasingTime) * (maxValue - minValue) + minValue;
-                increasingTime += Time.fixedDeltaTime;
+                increasingTime += Time.fixedDeltaTime / totalTime;
             }
             else
             {
@@ -215,13 +219,17 @@ namespace DoTweenMovement.Scripts
             float totalSpeedValue = 0;
             for (int i = 0; i < sampleRateParam+1; i++)
             {
-                var sampleValue = speedCurve.Evaluate((float)i/(sampleRateParam)) * (maxValue - minValue) + minValue;
+                var sampleValue = 
+                    speedCurve.Evaluate((float)i/(sampleRateParam)) * 
+                    (maxValue - minValue) + minValue;
+                
                 totalSpeedValue += sampleValue;
             }
 
             var time = distance / (totalSpeedValue / (sampleRateParam));
+            totalTime = time;
 
-            calculatingCurve = CreateNewSpeedCurve(time);
+            //calculatingCurve = CreateNewSpeedCurve(time);
 
             // for (int i = 0; i < speedCurve.keys.Length; i++)
             // {
@@ -235,22 +243,30 @@ namespace DoTweenMovement.Scripts
         {
             AnimationCurve animationCurve = new AnimationCurve();
             Keyframe[] newKeys = new Keyframe[speedCurve.length];
+           //animationCurve = speedCurve;
             for (int i = 0; i < speedCurve.length; i++)
             {
-                var diff = maxValue - minValue;
-                float value = minValue + speedCurve.keys[i].value * diff;
-                float time = speedCurve.keys[i].time * timeValue;
-                float inTangent = speedCurve.keys[i].inTangent * (timeValue);
-                float outTangent = speedCurve.keys[i].outTangent * timeValue;
-                float inWeight = speedCurve.keys[i].inWeight * (timeValue / 2);
-                float outWeight = speedCurve.keys[i].outWeight * (timeValue / 2);
-                                                  
-                newKeys[i] = new Keyframe(time, value, 
-                    inTangent, 
-                    outTangent,
-                    inWeight,
-                    outWeight);
-                animationCurve.AddKey(newKeys[i]);
+                // var diff = maxValue - minValue;
+                // float value = minValue + speedCurve.keys[i].value * diff;
+                // float time = speedCurve.keys[i].time * timeValue;
+                //animationCurve.MoveKey(i, new Keyframe(time, value));
+                // float inTangent = speedCurve.keys[i].inTangent * (timeValue / 2) + 
+                //                   (speedCurve.keys[i].inTangent * (minValue) + speedCurve.keys[i].inTangent * (diff));
+                // float outTangent = speedCurve.keys[i].outTangent * (timeValue / 2) + 
+                //                    (speedCurve.keys[i].outTangent * (minValue) + speedCurve.keys[i].outTangent * (diff));
+                // float inWeight = speedCurve.keys[i].inWeight * (timeValue / 2);
+                // float outWeight = speedCurve.keys[i].outWeight * (timeValue / 2);
+                //                                   
+                // newKeys[i] = new Keyframe(time, value, 
+                //     speedCurve.keys[i].inTangent, 
+                //     speedCurve.keys[i].outTangent,
+                //     inWeight,
+                //     outWeight);
+                // animationCurve.AddKey(newKeys[i]);
+                //animationCurve.MoveKey(i)
+                // animationCurve.keys[i].value = (animationCurve.keys[i].value * (maxValue - minValue) + minValue);
+                // animationCurve.keys[i].time = animationCurve.keys[i].time * timeValue;
+
             }
 
             return animationCurve;
