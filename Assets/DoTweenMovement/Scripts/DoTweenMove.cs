@@ -240,11 +240,16 @@ namespace DoTweenMovement.Scripts
                 var diff = maxValue - minValue;
                 float value = minValue + speedCurve.keys[i].value * diff;
                 float time = speedCurve.keys[i].time * timeValue;
+                float inTangent = speedCurve.keys[i].inTangent * (timeValue);
+                float outTangent = speedCurve.keys[i].outTangent * timeValue;
+                float inWeight = speedCurve.keys[i].inWeight * (timeValue / 2);
+                float outWeight = speedCurve.keys[i].outWeight * (timeValue / 2);
+                                                  
                 newKeys[i] = new Keyframe(time, value, 
-                    speedCurve.keys[i].inTangent, 
-                    speedCurve.keys[i].outTangent,
-                    speedCurve.keys[i].inWeight,
-                    speedCurve.keys[i].outWeight);
+                    inTangent, 
+                    outTangent,
+                    inWeight,
+                    outWeight);
                 animationCurve.AddKey(newKeys[i]);
             }
 

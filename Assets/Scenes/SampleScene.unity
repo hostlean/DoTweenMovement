@@ -397,8 +397,8 @@ MonoBehaviour:
   speed: 20
   minValue: 0
   maxValue: 30
-  sampleRate: 10
-  speedType: 0
+  sampleRate: 100
+  speedType: 1
   pathType: 0
   followType: 0
   pathPoints:
